@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel de Regulação - HUJM</title>
+    <title>Painel de Regulação - HUJM / EBSERH</title>
     
     <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -22,18 +22,23 @@
 
     <style>
         body { font-family: 'Roboto', sans-serif; background: #f3f4f6; color: #1e293b; margin: 0; min-height: 100vh; padding-bottom: 40px; scroll-behavior: smooth; }
-        .header-bg { background: linear-gradient(135deg, #000428 0%, #004e92 100%) !important; color: white !important; padding: 30px 40px; box-shadow: 0 4px 20px rgba(0,0,0,0.2); margin-bottom: 30px; }
         
-        /* LOGO ESTILIZADA PARA FICAR BONITA NO FUNDO ESCURO */
-        .header-mini-logo { 
-            height: 55px; 
-            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3)); 
-            transition: transform 0.3s; 
-            background: rgba(255,255,255,0.9); 
-            padding: 5px 10px; 
-            border-radius: 8px; 
+        /* BANNER EXCLUSIVO PARA LOGO */
+        .top-brand-bar {
+            background-color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-bottom: 4px solid #004e92;
         }
-        
+        .hujm-main-logo {
+            height: 90px; /* Logo gigante */
+            max-width: 100%;
+            object-fit: contain;
+        }
+
+        .header-bg { background: linear-gradient(135deg, #000428 0%, #004e92 100%) !important; color: white !important; padding: 25px 40px; box-shadow: 0 4px 20px rgba(0,0,0,0.2); margin-bottom: 30px; }
         .container { max-width: 1400px; margin: 0 auto; padding: 0 20px; }
         .header-print { display: none; }
 
@@ -68,25 +73,20 @@
         .chart-box { background: white; padding: 25px; border-radius: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border: 1px solid #e2e8f0; }
         .chart-box h4 { margin: 0 0 20px 0; font-size: 1.1rem; color: #0f172a; font-weight: 800; border-bottom: 1px solid #f1f5f9; padding-bottom: 15px; }
 
-        /* TABELA E FILTROS INDIVIDUAIS */
+        /* TABELA AJUSTADA PARA QUEBRAR LINHAS E NÃO ESTOURAR A TELA */
         table.dataTable { width: 100% !important; border-collapse: collapse !important; border-spacing: 0; }
         table.dataTable thead th { background-color: #004e92 !important; color: white !important; font-weight: 700 !important; text-transform: uppercase; padding: 12px 10px !important; font-size: 0.8rem; border: none !important; }
-        table.dataTable tbody td { padding: 10px !important; border-bottom: 1px solid #f1f5f9; color: #334155; font-size: 0.85rem; vertical-align: middle; }
+        table.dataTable tbody td { padding: 10px !important; border-bottom: 1px solid #f1f5f9; color: #334155; font-size: 0.85rem; vertical-align: middle; white-space: normal !important; }
         .dt-button { background: #004e92 !important; color: white !important; border: none !important; border-radius: 6px !important; padding: 8px 15px !important; font-weight: 600 !important; font-size: 0.85rem !important; }
         .dt-button:hover { background: #1e3a8a !important; }
         
         .search-input { width: 100%; padding: 4px 6px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 0.7rem; font-weight: normal; color: #334155; outline: none; margin-top: 5px; transition: border-color 0.3s; }
         .search-input:focus, .search-input.highlight-filter { border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2); }
 
-        .badge { padding: 4px 8px; border-radius: 6px; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; color: white; display: inline-block; }
+        .badge { padding: 4px 8px; border-radius: 6px; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; color: white; display: inline-block; white-space: nowrap; }
         .bg-aprovado { background-color: #10b981; } .bg-pendente { background-color: #f59e0b; } .bg-negado { background-color: #ef4444; } .bg-urgencia { background-color: #f97316; } .bg-eletiva { background-color: #3b82f6; }
         .btn-abrir { background-color: white; border: 1px solid #ef4444; color: #ef4444; padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 5px; transition: 0.2s; }
         .btn-abrir:hover { background-color: #ef4444; color: white; }
-
-        #notif-list::-webkit-scrollbar { width: 6px; }
-        #notif-list::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 8px; }
-        #notif-list::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 8px; }
-        #notif-list::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
         /* MODAL DETALHES */
         #modalDetalhes { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 10000; justify-content: center; align-items: center; backdrop-filter: blur(3px); }
@@ -107,13 +107,12 @@
 
         @keyframes slideDown { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
-        /* OTIMIZAÇÃO DE IMPRESSÃO (A4 RETRATO) */
         @media print {
-            @page { margin: 10mm; size: A4 portrait; }
+            @page { margin: 10mm; size: A4 landscape; }
             body { background: white !important; font-size: 8pt !important; color: #000 !important; }
-            .header-bg, .btn-back, .filter-bar, .dataTables_filter, .dataTables_length, .dataTables_paginate, .dt-buttons, .dataTables_info, #toast-container, .table-search, .no-print, #modalDetalhes { display: none !important; }
+            .top-brand-bar, .header-bg, .btn-back, .filter-bar, .dataTables_filter, .dataTables_length, .dataTables_paginate, .dt-buttons, .dataTables_info, #toast-container, .table-search, .no-print, #modalDetalhes { display: none !important; }
             .header-print { display: flex !important; align-items: center; border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 15px; }
-            .header-print img { height: 45px; margin-right: 15px; }
+            .header-print img { height: 50px; margin-right: 15px; }
             .header-info { flex: 1; text-align: center; }
             .header-info h1 { font-size: 13pt; margin: 0; font-weight: 900; }
             .header-info h2 { font-size: 10pt; margin: 2px 0; }
@@ -122,18 +121,11 @@
             .meta-card::before { display: none; }
             .meta-title { font-size: 6.5pt !important; font-weight: bold; margin-bottom: 5px; color: #000 !important; }
             .meta-value { font-size: 13pt !important; color: #000 !important; }
-            .charts-row { display: flex !important; flex-direction: row !important; gap: 10px !important; margin-bottom: 15px !important; align-items: stretch; height: 180px !important; }
-            .chart-box { border: 1px solid #000 !important; padding: 10px !important; box-shadow: none !important; flex: 1; border-radius: 4px !important; height: 100%; display: flex; flex-direction: column; }
-            .chart-box h4 { font-size: 9pt !important; margin: 0 0 10px 0 !important; border-bottom: 1px solid #000 !important; padding-bottom: 5px !important; color: #000 !important; }
-            canvas { max-height: 130px !important; width: 100% !important; }
-            #secao-tabela { page-break-before: auto; }
             table.dataTable { border-collapse: collapse !important; width: 100% !important; margin-top: 10px !important; }
             table.dataTable thead th { border: 1px solid #000 !important; color: #000 !important; font-size: 6.5pt !important; padding: 4px !important; background-color: #eee !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
             table.dataTable tbody td { border: 1px solid #000 !important; color: #000 !important; font-size: 6.5pt !important; padding: 4px !important; word-break: break-word; }
             .badge { color: #000 !important; background: none !important; border: 1px solid #000; padding: 1px 3px; font-size: 6pt !important; font-weight: bold; }
             .btn-abrir { display: none !important; }
-            #print-footer { position: fixed; bottom: 0; left: 0; right: 0; text-align: center; font-size: 7pt; border-top: 1px solid #000; padding-top: 5px; display: block !important; }
-            body.print-summary #secao-tabela { display: none !important; }
         }
     </style>
 </head>
@@ -164,13 +156,17 @@
         </div>
     </div>
 
-    <div class='header-bg pt-8 pb-14 shadow-lg mb-8'>
+    <div class="top-brand-bar">
+        <img src="logo.png" alt="Logo HUJM / EBSERH / UFMT" class="hujm-main-logo">
+    </div>
+
+    <div class='header-bg pt-6 pb-12 shadow-lg mb-8'>
         <div class='max-w-7xl mx-auto flex justify-between items-center px-4'>
             <div class="flex items-center gap-4">
                 <div class="bg-white/20 p-3 rounded-lg"><i class="fa-solid fa-hospital-user text-3xl"></i></div>
                 <div>
                     <h1 class='text-3xl font-bold'>Painel de Regulação</h1>
-                    <p class='text-gray-300'>Hospital Universitário Júlio Müller - EBSERH</p>
+                    <p class='text-blue-200'>Monitoramento de Solicitações SISREG</p>
                 </div>
             </div>
             
@@ -180,29 +176,23 @@
                     <span id="notif-badge" class="absolute -top-1 -right-2 bg-red-500 text-white text-[0.65rem] font-bold px-1.5 py-0.5 rounded-full hidden">0</span>
                 </div>
 
-                <div id="notif-menu" class="hidden absolute top-12 right-20 w-80 bg-white rounded-lg shadow-xl border border-gray-200 z-50 overflow-hidden">
+                <div id="notif-menu" class="hidden absolute top-12 right-0 w-80 bg-white rounded-lg shadow-xl border border-gray-200 z-50 overflow-hidden">
                     <div class="p-3 bg-gray-50 border-b border-gray-200 flex justify-between items-center">
                         <span class="font-bold text-gray-700 text-sm"><i class="fas fa-history text-blue-500 mr-1"></i> Histórico de Alertas</span>
                         <button onclick="marcarTodasLidas()" class="text-xs text-blue-600 hover:text-blue-800 font-semibold transition">Marcar todas</button>
                     </div>
                     <div id="notif-list" class="max-h-80 overflow-y-auto bg-white"></div>
                 </div>
-
-                <img src="logo_hujm.png" alt="Logo HUJM" class="header-mini-logo mr-2" onerror="this.style.display='none'; this.insertAdjacentHTML('afterend', '<i class=\'fas fa-hospital text-4xl text-white opacity-80 mr-2\'></i>');">
             </div>
         </div>
     </div>
 
     <div class="header-print">
-        <img src="logo_hujm.png" alt="Logo HUJM" onerror="this.style.display='none';">
+        <img src="logo.png" alt="Logo HUJM">
         <div class="header-info">
             <h1>Hospital Universitário Júlio Müller</h1>
             <h2>Relatório Analítico de Regulação (SISREG)</h2>
-            <p style="font-size:10pt; margin:0;">Setor de Regulação - Rede EBSERH</p>
-        </div>
-        <div class="header-meta">
-            <div><b>Período:</b> <span id="print-periodo">--/-- a --/--</span></div>
-            <div><b>Emissão:</b> <span id="print-data"></span></div>
+            <p style="font-size:10pt; margin:0;">Rede EBSERH / UFMT</p>
         </div>
     </div>
 
@@ -302,7 +292,7 @@
 
         <div class="chart-box" id="secao-tabela" style="padding-top:10px;">
             <h4 class="no-print"><i class="fas fa-list-ul" style="color:#004e92;"></i> Registro de Solicitações</h4>
-            <table id="tabelaRegulacao" class="display compact nowrap" style="width:100%">
+            <table id="tabelaRegulacao" class="display compact hover" style="width:100%">
                 <thead>
                     <tr>
                         <th>Data Sol.</th>
@@ -325,12 +315,7 @@
 
     </div>
 
-    <div id="print-footer" style="display:none;">
-        Relatório gerado pelo Sistema em <span id="footer-data"></span>. Documento para conferência interna.
-    </div>
-
     <script>
-        // === CREDENCIAIS DO NOVO SUPABASE CLIENTE (HUJM) ===
         const SB_URL = 'https://merxzzzbxzuvsydlipcm.supabase.co';
         const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1lcnh6enpieHp1dnN5ZGxpcGNtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI4MjEyMTUsImV4cCI6MjA4ODM5NzIxNX0.uxPWScWYTkUIqeGAkB1gsqxnyL2D1mRRjPayFr8uv7k';
         
@@ -339,6 +324,14 @@
         let chartClinica = null;
         let dataTableInstance = null;
         let dadosGlobais = [];
+
+        // FUNÇÃO DE LIMPEZA VISUAL (Tira os "nan" e "None" da tela)
+        function cleanData(val) {
+            if (val === null || val === undefined) return '-';
+            let s = String(val).trim();
+            if (s === 'None' || s === 'nan' || s === 'NaN' || s === '') return '-';
+            return s;
+        }
 
         $(document).ready(function() {
             const agora = new Date();
@@ -349,10 +342,6 @@
             document.getElementById('dataIni').value = fmt(primeiroDia);
             document.getElementById('dataFim').value = fmt(ultimoDia);
             
-            const hojePrint = new Date().toLocaleDateString('pt-BR') + ' ' + new Date().toLocaleTimeString('pt-BR');
-            $('#print-data').text(hojePrint);
-            $('#footer-data').text(hojePrint);
-
             carregarDados();
             carregarNotificacoes();
             inscreverRealtimeNotificacoes();
@@ -368,8 +357,8 @@
         }
 
         function agruparNomeClinica(nomeBruto) {
-            if (!nomeBruto) return "NÃO INFORMADA";
-            let n = nomeBruto.toUpperCase();
+            let n = cleanData(nomeBruto).toUpperCase();
+            if (n === '-') return "NÃO INFORMADA";
             if (n.includes("OBSTET")) return "OBSTETRÍCIA";
             if (n.includes("PEDIATR")) return "PEDIATRIA";
             if (n.includes("CLINICA MEDICA") || n.includes("CLÍNICA MÉDICA")) return "CLÍNICA MÉDICA";
@@ -378,23 +367,19 @@
             return nomeBruto;
         }
 
-        // --- MÁGICA DO FILTRO AUTOMÁTICO VIA MODAL ---
         window.aplicarFiltroModal = function(clinicaClicada, carater, tipoStatus) {
             fecharModal();
             limparFiltrosTabela();
 
-            // Lógica de busca de clínica para DataTables
             let searchClinica = clinicaClicada;
             if(clinicaClicada === "OBSTETRÍCIA") searchClinica = "OBSTET";
             if(clinicaClicada === "PEDIATRIA") searchClinica = "PEDIATR";
             if(clinicaClicada === "CLÍNICA MÉDICA") searchClinica = "CLINICA MEDICA"; 
             if(clinicaClicada === "NÃO INFORMADA") searchClinica = "-";
 
-            // Aplica filtro invisível na coluna Clínica (índice 2)
             dataTableInstance.column(2).search(searchClinica);
             $('.table-search th:eq(2) input').val(searchClinica).addClass('highlight-filter');
 
-            // Aplica filtro no Status (índice 7) usando Regex
             let strStatus = '';
             if(tipoStatus === 'APROVADOS') {
                 dataTableInstance.column(7).search('APROV|AUTORIZ', true, false);
@@ -405,7 +390,7 @@
                 strStatus = 'Pend';
             }
             else if(tipoStatus === 'NEGADOS') {
-                dataTableInstance.column(7).search('NEGADO|CANCELADO', true, false);
+                dataTableInstance.column(7).search('NEGADO|CANCELADO|DEVOLVID', true, false);
                 strStatus = 'Negad';
             }
             
@@ -413,17 +398,13 @@
                 $('.table-search th:eq(7) input').val(strStatus).addClass('highlight-filter');
             }
 
-            // Aplica filtro no Caráter (índice 8)
             let charC = carater.substring(0,3);
             dataTableInstance.column(8).search(charC);
             $('.table-search th:eq(8) input').val(charC).addClass('highlight-filter');
 
-            // Redesenha a tabela e rola para ela
             dataTableInstance.draw();
             
-            $('html, body').animate({
-                scrollTop: $("#secao-tabela").offset().top - 80
-            }, 600);
+            $('html, body').animate({ scrollTop: $("#secao-tabela").offset().top - 80 }, 600);
         };
 
         function limparFiltrosTabela() {
@@ -445,24 +426,24 @@
                 corHeader = "#004e92"; 
             } else if (tipo === 'APROVADOS') {
                 dadosFiltrados = dadosGlobais.filter(d => {
-                    let st = (d.status || "").toUpperCase();
+                    let st = cleanData(d.status).toUpperCase();
                     return st.includes('APROVAD') || st.includes('AUTORIZAD');
                 });
                 titulo = "Detalhamento: Solicitações Aprovadas";
                 corHeader = "#10b981"; 
             } else if (tipo === 'PENDENTES') {
                 dadosFiltrados = dadosGlobais.filter(d => {
-                    let st = (d.status || "").toUpperCase();
-                    return !st.includes('APROVAD') && !st.includes('AUTORIZAD') && !st.includes('NEGADO') && !st.includes('CANCELADO');
+                    let st = cleanData(d.status).toUpperCase();
+                    return !st.includes('APROVAD') && !st.includes('AUTORIZAD') && !st.includes('NEGADO') && !st.includes('CANCELADO') && !st.includes('DEVOLVID');
                 });
                 titulo = "Detalhamento: Solicitações Pendentes";
                 corHeader = "#f59e0b"; 
             } else if (tipo === 'NEGADOS') {
                 dadosFiltrados = dadosGlobais.filter(d => {
-                    let st = (d.status || "").toUpperCase();
-                    return st.includes('NEGADO') || st.includes('CANCELADO');
+                    let st = cleanData(d.status).toUpperCase();
+                    return st.includes('NEGADO') || st.includes('CANCELADO') || st.includes('DEVOLVID');
                 });
-                titulo = "Detalhamento: Negados ou Cancelados";
+                titulo = "Detalhamento: Negados ou Devolvidos";
                 corHeader = "#ef4444"; 
             }
 
@@ -475,7 +456,13 @@
 
             dadosFiltrados.forEach(p => {
                 let clinica = agruparNomeClinica(p.nome_clinica);
-                let carater = (p.carater_internacao || "NÃO INFORMADO").toUpperCase();
+                let rawCarater = cleanData(p.carater_internacao).toUpperCase();
+                
+                // Aplica a Regra do 10 e 11 no agrupamento também
+                let carater = rawCarater;
+                if(rawCarater === '10') carater = 'ELETIVA (10)';
+                else if(rawCarater === '11') carater = 'URGÊNCIA (11)';
+                else if(rawCarater === '-') carater = 'NÃO INFORMADO';
                 
                 let chave = clinica + "|" + carater;
                 
@@ -486,7 +473,6 @@
             });
 
             let arrayAgrupado = Object.values(agrupamento);
-            
             arrayAgrupado.sort((a, b) => {
                 if(b.qtd !== a.qtd) return b.qtd - a.qtd;
                 return a.clinica.localeCompare(b.clinica);
@@ -496,12 +482,11 @@
             tbody.empty();
 
             arrayAgrupado.forEach(item => {
-                let badgeClass = item.carater.includes('URG') ? 'bg-urgencia' : 'bg-eletiva';
-                // LINHA CLICÁVEL INJETANDO O FILTRO
+                let badgeClass = item.carater.includes('URG') || item.carater.includes('11') ? 'bg-urgencia' : 'bg-eletiva';
                 tbody.append(`
                     <tr class="modal-row-clickable" onclick="aplicarFiltroModal('${item.clinica}', '${item.carater}', '${tipo}')" title="Filtrar esta clínica na tabela principal">
                         <td class="font-bold"><i class="fas fa-search text-xs mr-2"></i>${item.clinica}</td>
-                        <td class="text-center"><span class="badge ${badgeClass}">${item.carater.substring(0,3)}</span></td>
+                        <td class="text-center"><span class="badge ${badgeClass}">${item.carater.substring(0,6)}</span></td>
                         <td class="text-center font-black text-lg" style="color: ${corHeader};">${item.qtd}</td>
                     </tr>
                 `);
@@ -509,11 +494,8 @@
 
             $('#modalTitle').html(`<i class="fas fa-clipboard-list mr-2"></i> ${titulo}`);
             $('.modal-header').css('background-color', corHeader);
-
             $('#modalDetalhes').css('display', 'flex').hide().fadeIn(200);
         }
-
-        // ================= FUNÇÕES DO PAINEL ================= //
 
         function imprimirResumo() {
             $('body').addClass('print-summary');
@@ -619,63 +601,29 @@
             }).subscribe();
         }
 
-        function limparECorrigirDados(dados) {
-            const map = new Map();
-            const nomesInvalidos = ["APROVADA", "APROVADO", "PENDENTE", "URGENCIA", "ELETIVA"];
-
-            dados.forEach(item => {
-                const idSol = item.num_solicitacao || item.cod_solicitacao; 
-                if (!idSol) { map.set(item.id, item); return; }
-
-                let pontuacaoItem = 0;
-                if (item.num_aih && item.num_aih.length > 5) pontuacaoItem += 2;
-                if (item.arquivo_pdf) pontuacaoItem += 2;
-                if (item.status && item.status.toUpperCase().includes('APROVAD')) pontuacaoItem += 1;
-                
-                let nomeAtual = (item.nome_paciente || "").toUpperCase().trim();
-                if (nomesInvalidos.some(bad => nomeAtual.includes(bad))) pontuacaoItem -= 10;
-
-                if (map.has(idSol)) {
-                    const existente = map.get(idSol);
-                    let pontuacaoExistente = 0;
-                    if (existente.num_aih && existente.num_aih.length > 5) pontuacaoExistente += 2;
-                    if (existente.arquivo_pdf) pontuacaoExistente += 2;
-                    if (existente.status && existente.status.toUpperCase().includes('APROVAD')) pontuacaoExistente += 1;
-                    let nomeExistente = (existente.nome_paciente || "").toUpperCase().trim();
-                    if (nomesInvalidos.some(bad => nomeExistente.includes(bad))) pontuacaoExistente -= 10;
-                    if (pontuacaoItem > pontuacaoExistente) map.set(idSol, item);
-                } else {
-                    map.set(idSol, item);
-                }
-            });
-            return Array.from(map.values());
-        }
-
-        function filtrarTabelaLocal() {
-            if(dataTableInstance) dataTableInstance.search($('#tableSearch').val()).draw();
-        }
-
         async function carregarDados() {
             const d1 = document.getElementById('dataIni').value;
             const d2 = document.getElementById('dataFim').value;
             const filtroTipo = document.getElementById('filtroTipo').value;
             
-            $('#print-periodo').text(`${d1.split('-').reverse().join('/')} a ${d2.split('-').reverse().join('/')}`);
-            $('#status-msg').html('<i class="fas fa-spinner fa-spin text-blue-600"></i> Baixando dados...');
+            $('#status-msg').html('<i class="fas fa-spinner fa-spin text-blue-600"></i> Sincronizando dados com o servidor...');
 
             try {
                 let allData = []; let from = 0; let step = 1000; let keepFetching = true;
 
+                // Busca ALL data sem filtro de data no banco, para não perder quem tá sem data
                 while (keepFetching) {
                     let query = client.from('regulacao')
                                       .select('data_solicitacao, data_autorizacao, nome_clinica, nome_paciente, cns_paciente, num_solicitacao, cod_solicitacao, num_aih, status, carater_internacao, arquivo_pdf')
-                                      .gte('data_solicitacao', d1)
-                                      .lte('data_solicitacao', d2)
-                                      .order('data_solicitacao', { ascending: false })
+                                      .order('data_atualizacao', { ascending: false })
                                       .range(from, from + step - 1); 
 
-                    if (filtroTipo === 'URGENCIA') query = query.ilike('carater_internacao', '%URG%');
-                    else if (filtroTipo === 'ELETIVA') query = query.ilike('carater_internacao', '%ELETIV%');
+                    // A Regra do 10 e 11 vai no filtro do banco de dados também!
+                    if (filtroTipo === 'URGENCIA') {
+                        query = query.or('carater_internacao.ilike.%URG%,carater_internacao.eq.11');
+                    } else if (filtroTipo === 'ELETIVA') {
+                        query = query.or('carater_internacao.ilike.%ELETIV%,carater_internacao.eq.10');
+                    }
 
                     const { data, error } = await query;
                     if(error) throw error;
@@ -688,17 +636,23 @@
                     if (!data || data.length < step) keepFetching = false;
                 }
 
-                if(!allData || allData.length === 0) {
-                    $('#status-msg').text("Nenhum dado encontrado.");
+                // Filtragem do Calendário feita no navegador (Mostra os do período + os que estão sem data)
+                let dadosFiltrados = allData.filter(item => {
+                    let dataDoItem = cleanData(item.data_solicitacao);
+                    if (dataDoItem === '-') return true; // Mostra quem tá sem data
+                    return dataDoItem >= d1 && dataDoItem <= d2; // Mostra quem tá no filtro
+                });
+
+                if(dadosFiltrados.length === 0) {
+                    $('#status-msg').text("Nenhum dado encontrado no período.");
                     dadosGlobais = [];
                     atualizarKPIs([]); renderizarGraficos([]); renderizarTabelaPrincipal([]);
                 } else {
-                    const dadosLimpos = limparECorrigirDados(allData);
-                    dadosGlobais = dadosLimpos; 
-                    $('#status-msg').text(dadosLimpos.length + " registros sincronizados.");
-                    atualizarKPIs(dadosLimpos);
-                    renderizarGraficos(dadosLimpos);
-                    renderizarTabelaPrincipal(dadosLimpos);
+                    dadosGlobais = dadosFiltrados; 
+                    $('#status-msg').text(dadosFiltrados.length + " registros sincronizados.");
+                    atualizarKPIs(dadosFiltrados);
+                    renderizarGraficos(dadosFiltrados);
+                    renderizarTabelaPrincipal(dadosFiltrados);
                 }
             } catch(e) {
                 console.error(e);
@@ -711,16 +665,18 @@
             let aprovados = 0; let pendentes = 0; let negados = 0;
 
             data.forEach(d => {
-                let st = (d.status || "").toUpperCase();
+                let st = cleanData(d.status).toUpperCase();
                 if (st.includes('APROVAD') || st.includes('AUTORIZAD')) aprovados++;
-                else if (st.includes('NEGADO') || st.includes('CANCELADO')) negados++;
+                else if (st.includes('NEGADO') || st.includes('CANCELADO') || st.includes('DEVOLVID')) negados++;
                 else pendentes++;
             });
             
             let somaDias = 0, contaDias = 0;
             data.forEach(d => {
-                if(d.data_solicitacao && d.data_autorizacao) {
-                    let diff = Math.ceil(Math.abs(new Date(d.data_autorizacao) - new Date(d.data_solicitacao)) / (1000 * 60 * 60 * 24));
+                let dSol = cleanData(d.data_solicitacao);
+                let dAut = cleanData(d.data_autorizacao);
+                if(dSol !== '-' && dAut !== '-') {
+                    let diff = Math.ceil(Math.abs(new Date(dAut) - new Date(dSol)) / (1000 * 60 * 60 * 24));
                     if(diff >= 0 && diff < 1000) { somaDias += diff; contaDias++; }
                 }
             });
@@ -736,9 +692,9 @@
         function renderizarGraficos(data) {
             let stats = { 'Aprovado': 0, 'Pendente': 0, 'Negado': 0 };
             data.forEach(d => {
-                let st = (d.status || "").toUpperCase();
+                let st = cleanData(d.status).toUpperCase();
                 if (st.includes('APROVAD') || st.includes('AUTORIZAD')) stats['Aprovado']++;
-                else if (st.includes('NEGADO') || st.includes('CANCELADO')) stats['Negado']++;
+                else if (st.includes('NEGADO') || st.includes('CANCELADO') || st.includes('DEVOLVID')) stats['Negado']++;
                 else stats['Pendente']++;
             });
             
@@ -747,7 +703,7 @@
             chartDoughnut = new Chart(ctx1, {
                 type: 'doughnut',
                 data: {
-                    labels: ['Aprovado', 'Pendente', 'Negado'],
+                    labels: ['Aprovado', 'Pendente', 'Negado / Canc.'],
                     datasets: [{ data: [stats['Aprovado'], stats['Pendente'], stats['Negado']], backgroundColor: ['#10b981', '#f59e0b', '#ef4444'] }]
                 },
                 options: { maintainAspectRatio: false, plugins: { legend: { position: 'right' } } }
@@ -755,9 +711,13 @@
 
             let clinicas = {};
             data.forEach(d => {
-                if(d.nome_clinica && d.data_solicitacao && d.data_autorizacao) {
-                    let nome = d.nome_clinica.substring(0, 25);
-                    let diff = Math.ceil(Math.abs(new Date(d.data_autorizacao) - new Date(d.data_solicitacao)) / (1000 * 60 * 60 * 24));
+                let dSol = cleanData(d.data_solicitacao);
+                let dAut = cleanData(d.data_autorizacao);
+                let nomeRaw = cleanData(d.nome_clinica);
+
+                if(nomeRaw !== '-' && dSol !== '-' && dAut !== '-') {
+                    let nome = nomeRaw.substring(0, 25);
+                    let diff = Math.ceil(Math.abs(new Date(dAut) - new Date(dSol)) / (1000 * 60 * 60 * 24));
                     if(!clinicas[nome]) clinicas[nome] = {soma:0, qtd:0};
                     clinicas[nome].soma += diff;
                     clinicas[nome].qtd++;
@@ -800,69 +760,78 @@
                 lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Todos"]],
                 order: [[0, 'desc']], 
                 responsive: true,
+                columnDefs: [
+                    { targets: [2, 3], width: '20%' }, // Dá mais espaço para Clínica e Paciente
+                    { targets: [7, 8], width: '10%' }  // Limita o espaço de Status e Caráter
+                ],
                 buttons: [
                     { extend: 'excelHtml5', className: 'dt-button', text: '<i class="fas fa-file-excel"></i> Excel' },
                     { extend: 'print', className: 'dt-button', text: '<i class="fas fa-print"></i> Imprimir Tudo (A4)', action: function () { window.print(); } }
                 ],
                 language: { url: "//cdn.datatables.net/plug-ins/1.13.6/i18n/pt-BR.json", lengthMenu: "Mostrar _MENU_" },
                 columns: [
-                    { data: 'data_solicitacao', render: d => d ? d.split('-').reverse().join('/') : '-' },
-                    { data: 'data_autorizacao', render: d => d ? d.split('-').reverse().join('/') : '-' },
+                    { data: 'data_solicitacao', render: d => cleanData(d) !== '-' ? d.split('-').reverse().join('/') : '<span style="color:#ef4444; font-weight:bold; font-size:0.75rem;">Sem Data</span>' },
+                    { data: 'data_autorizacao', render: d => cleanData(d) !== '-' ? d.split('-').reverse().join('/') : '-' },
                     { 
                         data: 'nome_clinica', 
-                        render: function(d, type, row) {
-                            if (!d) return '-';
-                            if (type === 'display') return `<span title="${d}">${d.length > 20 ? d.substring(0, 20) + '...' : d}</span>`;
-                            return d; 
+                        render: function(d) {
+                            let v = cleanData(d);
+                            // Permite a quebra de linha com white-space: normal
+                            return v !== '-' ? `<span style="white-space: normal; display: block; min-width: 120px;">${v}</span>` : v;
                         } 
                     },
                     { 
                         data: 'nome_paciente', 
-                        render: function(d, type, row) {
-                            if (!d || d === "APROVADA" || d === "PENDENTE") return '<span style="color:#ef4444; font-size:0.7rem;">(Aguardando Correção)</span>';
-                            if (type === 'display') {
-                                return `<b title="${d}">${d.length > 25 ? d.substring(0, 25) + '...' : d}</b>`;
-                            }
-                            return d;
+                        render: function(d) {
+                            let v = cleanData(d);
+                            return v !== '-' ? `<b style="white-space: normal; display: block; min-width: 150px;">${v}</b>` : v;
                         } 
                     },
                     { 
                         data: 'cns_paciente', 
-                        render: function(d) {
-                            return d && d.trim() !== "" ? d : '<span style="color:#cbd5e1;">-</span>';
+                        render: d => cleanData(d)
+                    },
+                    { 
+                        data: null, 
+                        render: r => {
+                            let sol = cleanData(r.cod_solicitacao);
+                            let solAlt = cleanData(r.num_solicitacao);
+                            return sol !== '-' ? sol : solAlt;
                         }
                     },
-                    { data: null, render: r => r.cod_solicitacao || r.num_solicitacao || '-' },
                     { 
                         data: 'num_aih', 
                         render: (d, type, row) => {
-                            let sol = row.cod_solicitacao || row.num_solicitacao || "";
-                            if (!d || d.trim() === "" || d === sol) return '<span style="color:#cbd5e1;">-</span>';
-                            return `<b>${d}</b>`;
+                            let aih = cleanData(d);
+                            return aih !== '-' ? `<b>${aih}</b>` : '-';
                         }
                     },
                     { 
                         data: 'status', 
-                        render: (d, type, row) => {
-                            let st = (d || "").toUpperCase();
-                            if(st.includes('APROVAD') || st.includes('AUTORIZAD')) return `<span class="badge bg-aprovado">${d}</span>`;
-                            if(st.includes('NEGADO') || st.includes('CANCELADO')) return `<span class="badge bg-negado">${d}</span>`;
-                            return `<span class="badge bg-pendente">${d || 'PENDENTE'}</span>`;
+                        render: (d) => {
+                            let st = cleanData(d).toUpperCase();
+                            if(st === '-') return '-';
+                            if(st.includes('APROVAD') || st.includes('AUTORIZAD')) return `<span class="badge bg-aprovado">${st}</span>`;
+                            if(st.includes('NEGADO') || st.includes('CANCELADO') || st.includes('DEVOLVID')) return `<span class="badge bg-negado">${st}</span>`;
+                            return `<span class="badge bg-pendente">${st}</span>`;
                         }
                     },
                     { 
                         data: 'carater_internacao', 
                         render: d => {
-                            if(!d) return '-';
-                            let cls = d.toUpperCase().includes('URG') ? 'bg-urgencia' : 'bg-eletiva';
-                            return `<span class="badge ${cls}">${d.substring(0,3)}</span>`;
+                            let val = cleanData(d).toUpperCase();
+                            // Lógica inteligente do HUJM (10 = Eletiva | 11 = Urgência)
+                            if(val === '10' || val.includes('ELETIV')) return `<span class="badge bg-eletiva">ELETIVA (10)</span>`;
+                            if(val === '11' || val.includes('URG')) return `<span class="badge bg-urgencia">URGÊNCIA (11)</span>`;
+                            return val !== '-' ? `<span class="badge bg-pendente">${val}</span>` : '-';
                         }
                     },
                     { 
                         data: 'arquivo_pdf', 
                         className: 'text-center no-print', 
                         render: d => {
-                            if(d && d.length > 5) return `<a href="${d}" target="_blank" class="btn-abrir"><i class="fas fa-file-pdf"></i> Abrir</a>`;
+                            let v = cleanData(d);
+                            if(v !== '-' && v.length > 5) return `<a href="${v}" target="_blank" class="btn-abrir"><i class="fas fa-file-pdf"></i> Abrir</a>`;
                             return '-';
                         }
                     }
