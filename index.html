@@ -11,7 +11,11 @@
     <script src="https://cdn.tailwindcss.com"></script>
     
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.dataTables.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.dataTables.min.css">
+    
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
     <script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
@@ -24,19 +28,8 @@
         body { font-family: 'Roboto', sans-serif; background: #f3f4f6; color: #1e293b; margin: 0; min-height: 100vh; padding-bottom: 40px; scroll-behavior: smooth; }
         
         /* BANNER EXCLUSIVO PARA LOGO */
-        .top-brand-bar {
-            background-color: white;
-            padding: 15px 20px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            border-bottom: 4px solid #004e92;
-        }
-        .hujm-main-logo {
-            height: 90px; /* Logo gigante */
-            max-width: 100%;
-            object-fit: contain;
-        }
+        .top-brand-bar { background-color: white; padding: 15px 20px; display: flex; justify-content: center; align-items: center; border-bottom: 4px solid #004e92; }
+        .hujm-main-logo { height: 90px; max-width: 100%; object-fit: contain; }
 
         .header-bg { background: linear-gradient(135deg, #000428 0%, #004e92 100%) !important; color: white !important; padding: 25px 40px; box-shadow: 0 4px 20px rgba(0,0,0,0.2); margin-bottom: 30px; }
         .container { max-width: 1400px; margin: 0 auto; padding: 0 20px; }
@@ -73,10 +66,11 @@
         .chart-box { background: white; padding: 25px; border-radius: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border: 1px solid #e2e8f0; }
         .chart-box h4 { margin: 0 0 20px 0; font-size: 1.1rem; color: #0f172a; font-weight: 800; border-bottom: 1px solid #f1f5f9; padding-bottom: 15px; }
 
-        /* TABELA AJUSTADA PARA QUEBRAR LINHAS E NÃO ESTOURAR A TELA */
+        /* TABELA AJUSTADA */
         table.dataTable { width: 100% !important; border-collapse: collapse !important; border-spacing: 0; }
         table.dataTable thead th { background-color: #004e92 !important; color: white !important; font-weight: 700 !important; text-transform: uppercase; padding: 12px 10px !important; font-size: 0.8rem; border: none !important; }
-        table.dataTable tbody td { padding: 10px !important; border-bottom: 1px solid #f1f5f9; color: #334155; font-size: 0.85rem; vertical-align: middle; white-space: normal !important; }
+        /* Garante que o texto possa quebrar a linha */
+        table.dataTable tbody td { padding: 10px !important; border-bottom: 1px solid #f1f5f9; color: #334155; font-size: 0.85rem; vertical-align: middle; white-space: normal !important; word-wrap: break-word; }
         .dt-button { background: #004e92 !important; color: white !important; border: none !important; border-radius: 6px !important; padding: 8px 15px !important; font-weight: 600 !important; font-size: 0.85rem !important; }
         .dt-button:hover { background: #1e3a8a !important; }
         
@@ -292,7 +286,7 @@
 
         <div class="chart-box" id="secao-tabela" style="padding-top:10px;">
             <h4 class="no-print"><i class="fas fa-list-ul" style="color:#004e92;"></i> Registro de Solicitações</h4>
-            <table id="tabelaRegulacao" class="display compact hover" style="width:100%">
+            <table id="tabelaRegulacao" class="display compact hover nowrap" style="width:100%">
                 <thead>
                     <tr>
                         <th>Data Sol.</th>
@@ -458,7 +452,6 @@
                 let clinica = agruparNomeClinica(p.nome_clinica);
                 let rawCarater = cleanData(p.carater_internacao).toUpperCase();
                 
-                // Aplica a Regra do 10 e 11 no agrupamento também
                 let carater = rawCarater;
                 if(rawCarater === '10') carater = 'ELETIVA (10)';
                 else if(rawCarater === '11') carater = 'URGÊNCIA (11)';
@@ -611,14 +604,12 @@
             try {
                 let allData = []; let from = 0; let step = 1000; let keepFetching = true;
 
-                // Busca ALL data sem filtro de data no banco, para não perder quem tá sem data
                 while (keepFetching) {
                     let query = client.from('regulacao')
                                       .select('data_solicitacao, data_autorizacao, nome_clinica, nome_paciente, cns_paciente, num_solicitacao, cod_solicitacao, num_aih, status, carater_internacao, arquivo_pdf')
                                       .order('data_atualizacao', { ascending: false })
                                       .range(from, from + step - 1); 
 
-                    // A Regra do 10 e 11 vai no filtro do banco de dados também!
                     if (filtroTipo === 'URGENCIA') {
                         query = query.or('carater_internacao.ilike.%URG%,carater_internacao.eq.11');
                     } else if (filtroTipo === 'ELETIVA') {
@@ -636,11 +627,10 @@
                     if (!data || data.length < step) keepFetching = false;
                 }
 
-                // Filtragem do Calendário feita no navegador (Mostra os do período + os que estão sem data)
                 let dadosFiltrados = allData.filter(item => {
                     let dataDoItem = cleanData(item.data_solicitacao);
-                    if (dataDoItem === '-') return true; // Mostra quem tá sem data
-                    return dataDoItem >= d1 && dataDoItem <= d2; // Mostra quem tá no filtro
+                    if (dataDoItem === '-') return true; 
+                    return dataDoItem >= d1 && dataDoItem <= d2; 
                 });
 
                 if(dadosFiltrados.length === 0) {
@@ -756,13 +746,14 @@
                 data: data,
                 dom: 'lBrtip',
                 pageLength: 25,
+                responsive: true,
                 orderCellsTop: true, 
                 lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Todos"]],
                 order: [[0, 'desc']], 
-                responsive: true,
                 columnDefs: [
-                    { targets: [2, 3], width: '20%' }, // Dá mais espaço para Clínica e Paciente
-                    { targets: [7, 8], width: '10%' }  // Limita o espaço de Status e Caráter
+                    { targets: 2, width: '15%' }, // Clínica
+                    { targets: 3, width: '20%' }, // Paciente
+                    { targets: [7, 8], width: '8%' } // Status e Caráter
                 ],
                 buttons: [
                     { extend: 'excelHtml5', className: 'dt-button', text: '<i class="fas fa-file-excel"></i> Excel' },
@@ -776,7 +767,6 @@
                         data: 'nome_clinica', 
                         render: function(d) {
                             let v = cleanData(d);
-                            // Permite a quebra de linha com white-space: normal
                             return v !== '-' ? `<span style="white-space: normal; display: block; min-width: 120px;">${v}</span>` : v;
                         } 
                     },
@@ -803,7 +793,13 @@
                         data: 'num_aih', 
                         render: (d, type, row) => {
                             let aih = cleanData(d);
-                            return aih !== '-' ? `<b>${aih}</b>` : '-';
+                            let sol1 = cleanData(row.cod_solicitacao);
+                            let sol2 = cleanData(row.num_solicitacao);
+                            
+                            // SEGREDO DESVENDADO AQUI: Se a AIH for igual à solicitação, ele esconde.
+                            if (aih === '-' || aih === sol1 || aih === sol2) return '<span style="color:#cbd5e1;">-</span>';
+                            
+                            return `<b>${aih}</b>`;
                         }
                     },
                     { 
@@ -820,7 +816,6 @@
                         data: 'carater_internacao', 
                         render: d => {
                             let val = cleanData(d).toUpperCase();
-                            // Lógica inteligente do HUJM (10 = Eletiva | 11 = Urgência)
                             if(val === '10' || val.includes('ELETIV')) return `<span class="badge bg-eletiva">ELETIVA (10)</span>`;
                             if(val === '11' || val.includes('URG')) return `<span class="badge bg-urgencia">URGÊNCIA (11)</span>`;
                             return val !== '-' ? `<span class="badge bg-pendente">${val}</span>` : '-';
